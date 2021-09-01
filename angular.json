@@ -14,13 +14,13 @@
           "options": {
             "tsConfig": "projects/angular-mentions/tsconfig.lib.json",
             "project": "projects/angular-mentions/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/angular-mentions/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -30,14 +30,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/angular-mentions/tsconfig.lib.json",
-              "projects/angular-mentions/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/angular-mentions/**/*.ts",
+              "projects/angular-mentions/**/*.html"
             ]
           }
         }
@@ -61,7 +58,11 @@
             "assets": [
               "projects/demo-app/src/favicon.ico",
               "projects/demo-app/src/assets",
-              { "glob": "**/*", "input": "node_modules/tinymce", "output": "/tinymce/" }
+              {
+                "glob": "**/*",
+                "input": "node_modules/tinymce",
+                "output": "/tinymce/"
+              }
             ],
             "styles": [
               "projects/demo-app/src/styles.css"
