@@ -16,34 +16,17 @@
         "createDefaultProgram": true
       },
       "extends": [
-        "plugin:@angular-eslint/recommended",
-        "plugin:@angular-eslint/template/process-inline-templates"
+        "@strut-software/eslint-config/angular"
       ],
-      "rules": {
-        "@angular-eslint/component-selector": [
-          "error",
-          {
-            "prefix": "lib",
-            "style": "kebab-case",
-            "type": "element"
-          }
-        ],
-        "@angular-eslint/directive-selector": [
-          "error",
-          {
-            "prefix": "lib",
-            "style": "camelCase",
-            "type": "attribute"
-          }
-        ]
-      }
+      "rules": {}
     },
     {
       "files": [
         "*.html"
       ],
+      "parser": "@angular-eslint/template-parser",
       "extends": [
-        "plugin:@angular-eslint/template/recommended"
+        "@strut-software/eslint-config/angular-html"
       ],
       "rules": {}
     }
