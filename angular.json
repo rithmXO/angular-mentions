@@ -4,9 +4,9 @@
   "newProjectRoot": "projects",
   "projects": {
     "angular-mentions": {
+      "projectType": "library",
       "root": "projects/angular-mentions",
       "sourceRoot": "projects/angular-mentions/src",
-      "projectType": "library",
       "prefix": "lib",
       "architect": {
         "build": {
