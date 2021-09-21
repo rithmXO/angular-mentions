@@ -1,8 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MentionListComponent } from '.';
 import { MentionDirective } from './mention.directive';
-import { MentionListComponent } from './mention-list.component';
 
+/**
+ * Angular module for all comment mention behavior.
+ */
 @NgModule({
   declarations: [
     MentionDirective,
