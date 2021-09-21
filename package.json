@@ -8,7 +8,7 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "lint-style": "npx stylelint \"**/*.scss\"",
+    "lint-style": "npx stylelint \"**/*.scss\" && npx stylelint \"**/*.css\"",
     "e2e": "ng e2e"
   },
   "repository": {
