@@ -1,5 +1,8 @@
 {
   "extends": "@strut-software/stylelint-config",
   "rules": {
-  }
+  },
+  "ignoreFiles": [
+    "docs/*.css"
+  ]
 }
