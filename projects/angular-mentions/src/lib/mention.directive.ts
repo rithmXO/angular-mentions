@@ -26,7 +26,7 @@ const KEY_BUFFERED = 229;
  * Copyright (c) 2017 Dan MacFarlane.
  */
 @Directive({
-  selector: '[mentionItems] [mentionConfig]',
+  selector: '[mentionItems], [mentionConfig]',
 })
 export class MentionDirective implements OnChanges {
 
