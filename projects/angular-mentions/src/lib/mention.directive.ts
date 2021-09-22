@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { ComponentFactoryResolver, Directive, ElementRef, HostBinding, HostListener, TemplateRef, ViewContainerRef } from '@angular/core';
 import { EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { getCaretPosition, getValue, insertValue, setCaretPosition, InternalConfig, getTextSelection } from './helpers';
+import { getCaretPosition, getValue, insertValue, InternalConfig, getTextSelection } from './helpers';
 
 import { MentionConfig, SingleMentionConfig, MentionItem } from './models';
 import { MentionListComponent } from './mention-list/mention-list.component';
@@ -15,7 +15,7 @@ const KEY_SHIFT = 16;
 const KEY_ESCAPE = 27;
 const KEY_SPACE = 32;
 const KEY_UP = 38;
-const KEY_DOWN = 40;
+const KEY_DOWN = 40;``
 // const KEY_LEFT = 37;
 // const KEY_RIGHT = 39;
 const KEY_BUFFERED = 229;
