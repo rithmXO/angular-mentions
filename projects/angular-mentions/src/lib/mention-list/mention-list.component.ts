@@ -1,6 +1,6 @@
 import { Component, ElementRef, Output, EventEmitter, ViewChild, TemplateRef } from '@angular/core';
 import { isInputOrTextAreaElement, getContentEditableCaretCoordinate, getCaretCoordinate } from '../helpers';
-import { MentionItem, Coordinate } from '../models';
+import { Coordinate } from '../models';
 
 /**
  * Angular Mentions.
@@ -25,7 +25,7 @@ export class MentionListComponent {
   itemTemplate: TemplateRef<unknown> | null = null;
 
   /** The list of mention items to be displayed. */
-  items: MentionItem[] = [];
+  items: Record<string, string>[] = [];
 
   /** The index position of the active mention item. */
   activeIndex = 0;
@@ -50,7 +50,7 @@ export class MentionListComponent {
    *
    * @returns The active mention item.
    */
-  get activeItem(): MentionItem {
+  get activeItem(): Record<string, string> {
     return this.items[this.activeIndex];
   }
 

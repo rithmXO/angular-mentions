@@ -170,7 +170,7 @@ function getDocument(iframe?: HTMLIFrameElement): Document {
  * @param iframe The `iframe` for which to get the text instead of the window (optional).
  * @returns The object for the selection.
  */
-function getTextSelection(iframe?: HTMLIFrameElement): Selection {
+export function getTextSelection(iframe?: HTMLIFrameElement): Selection {
   const windowContext = iframe ? iframe.contentWindow : window;
   if (!windowContext) {
     throw new Error('A window context is needed to get the selection. This is most likely an error with an non-existent iframe.');

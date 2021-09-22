@@ -1,13 +1,20 @@
 import { MentionItem } from './mention-item';
 
-export interface MentionConfig extends SingleMentionConfig {
+/**
+ * Object housing all options for configuring the mentions.
+ */
+export interface MentionConfig {
+
   /** Nested config. */
-  configs?: SingleMentionConfig[];
+  configs: SingleMentionConfig[];
 
   /** Option to disable encapsulated styles so global styles can be used instead. */
   disableStyle?: boolean;
 }
 
+/**
+ * A configuration for a single mention (tied to a label key).
+ */
 export interface SingleMentionConfig {
   /** An array of strings or objects to suggest. */
   items: MentionItem[];
@@ -37,8 +44,8 @@ export interface SingleMentionConfig {
   returnTrigger?: boolean;
 
   /** Optional function to format the selected item before inserting the text. */
-  mentionSelect?: (item: MentionItem, triggerChar?: string) => (string);
+  mentionSelect?: (item: Record<string, string>, triggerChar?: string) => (string);
 
   /** Optional function to customize the search implementation. */
-  mentionFilter?: (searchString: string, items?: MentionItem[]) => (MentionItem[]);
+  mentionFilter?: (searchString: string, items?: Record<string, string>[]) => (Record<string, string>[]);
 }

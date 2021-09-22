@@ -1,11 +1,10 @@
 /* eslint-disable */
 import { ComponentFactoryResolver, Directive, ElementRef, HostBinding, HostListener, TemplateRef, ViewContainerRef } from '@angular/core';
 import { EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { getCaretPosition, getValue, insertValue, setCaretPosition } from './helpers/mention-utils';
+import { getCaretPosition, getValue, insertValue, setCaretPosition, InternalConfig, getTextSelection } from './helpers';
 
-import { MentionConfig, SingleMentionConfig } from './models/mention-config';
+import { MentionConfig, SingleMentionConfig, MentionItem } from './models';
 import { MentionListComponent } from './mention-list/mention-list.component';
-import { MentionItem } from './models/mention-item';
 
 // Keyboard codes
 // TODO: update these to new codes: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
@@ -27,21 +26,21 @@ const KEY_BUFFERED = 229;
  * Copyright (c) 2017 Dan MacFarlane.
  */
 @Directive({
-  selector: '[mentionConfig]',
+  selector: '[mentionItems] [mentionConfig]',
 })
 export class MentionDirective implements OnChanges {
 
   /** Turns off autocomplete for the host element of this directive. */
   @HostBinding('attr.autocomplete') autoComplete = 'off';
 
-  /** Stores the items passed to the mentions directive and used to populate the root items in mentionConfig. */
-  private mentionItems: MentionItem[] = [];
+  /** Items to suggest in the mention list. Will be ignored if `mentionConfig` is provided. */
+  @Input() mentionItems: MentionItem[] = [];
 
-  /** The provided configuration object. */
-  @Input() mentionConfig: MentionConfig = { items: [] };
+  /** Options to configure the mentions. */
+  @Input() mentionConfig: MentionConfig = { configs: [] };
 
   /** Template to customize the look of items displayed in the mention list. */
-  @Input() mentionListTemplate?: TemplateRef<unknown>;
+  @Input() mentionListTemplate: TemplateRef<unknown> | null = null;
 
   /** Event emitted whenever the search term changes. Can be used to trigger async search. */
   @Output() searchTerm = new EventEmitter<string>();
@@ -59,29 +58,10 @@ export class MentionDirective implements OnChanges {
   private mentionListComponent: MentionListComponent;
 
   /** The active mention configuration based on the entered character. */
-  private activeConfig: SingleMentionConfig | null = null;
-
-  /** The default mention configuration to be used. */
-  private readonly DEFAULT_CONFIG: MentionConfig = {
-    items: [],
-    triggerChar: '@',
-    labelKey: 'label',
-    maxItems: -1,
-    allowSpace: false,
-    returnTrigger: false,
-    mentionSelect: (item: MentionItem) => this.activeConfig?.triggerChar + item[this.activeConfig.labelKey],
-    mentionFilter: (searchString: string, items: MentionItem[] = []) => {
-      const test = this.activeConfig;
-      if (!test) {
-        throw new Error('Cannot filter without an active config');
-      }
-      const searchStringLowerCase = searchString.toLowerCase();
-      return items.filter(item => item[this.activeConfig.labelKey].toLowerCase().startsWith(searchStringLowerCase));
-    }
-  };
+  private activeConfig: InternalConfig | null = null;
 
   /** All the mention configs for all the given trigger characters. */
-  private triggerChars: { [key: string]: MentionConfig } = {};
+  private triggerChars: { [key: string]: SingleMentionConfig } = {};
 
   /** The search string that the user has entered. */
   private searchString = '';
@@ -101,8 +81,27 @@ export class MentionDirective implements OnChanges {
   /** */
   private iframe?: HTMLIFrameElement; // optional
 
+  /** The default mention configuration to be used. */
+  // private readonly DEFAULT_CONFIG: SingleMentionConfig = {
+  //   items: [],
+  //   triggerChar: '@',
+  //   labelKey: 'label',
+  //   maxItems: -1,
+  //   allowSpace: false,
+  //   returnTrigger: false,
+  //   mentionSelect: (item: MentionItem) => this.activeConfig?.triggerChar + item[this.activeConfig.labelKey],
+  //   mentionFilter: (searchString: string, items: MentionItem[] = []) => {
+  //     const test = this.activeConfig;
+  //     if (!test) {
+  //       throw new Error('Cannot filter without an active config');
+  //     }
+  //     const searchStringLowerCase = searchString.toLowerCase();
+  //     return items.filter(item => item[this.activeConfig.labelKey].toLowerCase().startsWith(searchStringLowerCase));
+  //   }
+  // };
+
   constructor(
-    private element: ElementRef<Node>,
+    private element: ElementRef<HTMLElement>,
     private componentResolver: ComponentFactoryResolver,
     private viewContainerRef: ViewContainerRef
   ) {
@@ -118,7 +117,7 @@ export class MentionDirective implements OnChanges {
    * @param changes The changes that occurred.
    */
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['mention'] || changes['mentionConfig']) {
+    if (changes['mentionItems'] || changes['mentionConfig']) {
       this.updateConfig();
     }
   }
@@ -175,18 +174,22 @@ export class MentionDirective implements OnChanges {
         charPressed = String.fromCharCode(event.which || event.keyCode);
       }
     }
-    if (event.keyCode === KEY_ENTER && wasClick && pos < this.startPos) {
-      // put caret back in position prior to content editable menu click
-      pos = this.startNode?.length ?? 0;
-      setCaretPosition(this.startNode, pos, this.iframe);
-    }
+    // TODO: this doesn't seem to work?
+    // if (event.keyCode === KEY_ENTER && wasClick && pos < this.startPos) {
+    //   // put caret back in position prior to content editable menu click
+    //   if (!this.startNode) {
+    //     throw new Error('Start node was null.');
+    //   }
+    //   pos = this.startNode.length;
+    //   setCaretPosition(this.startNode, pos, this.iframe);
+    // }
     // console.log("keyHandler", this.startPos, pos, val, charPressed, event);
 
     const config = this.triggerChars[charPressed];
     if (config) {
-      this.activeConfig = config;
+      this.activeConfig = new InternalConfig(config);
       this.startPos = inputEvent ? pos - 1 : pos;
-      this.startNode = (this.iframe ? this.iframe.contentWindow.getSelection() : window.getSelection()).anchorNode;
+      this.startNode = getTextSelection(this.iframe).anchorNode;
       this.searching = true;
       this.searchString = '';
       this.showSearchList(this.element.nativeElement);
@@ -205,7 +208,7 @@ export class MentionDirective implements OnChanges {
         !event.ctrlKey &&
         pos > this.startPos
       ) {
-        if (!this.activeConfig.allowSpace && event.keyCode === KEY_SPACE) {
+        if (!this.getActiveConfig().allowSpace && event.keyCode === KEY_SPACE) {
           this.startPos = -1;
         } else if (event.keyCode === KEY_BACKSPACE && pos > 0) {
           pos--;
@@ -282,19 +285,18 @@ export class MentionDirective implements OnChanges {
   }
 
   /**
-   *
+   * Updates the tracked config(s) with any changes that occurred.
    */
   updateConfig(): void {
-    const config = this.mentionConfig;
     this.triggerChars = {};
-    // use items from directive if they have been set
-    if (this.mentionItems) {
-      config.items = this.mentionItems;
-    }
-    this.addConfig(config);
-    // nested configs
-    if (config.configs) {
-      config.configs.forEach((mentionsConfig) => this.addConfig(mentionsConfig));
+
+    if (this.mentionConfig.configs) { // using complex configs; ignore list
+      this.mentionConfig.configs.forEach((mentionConfig) => this.addConfig(mentionConfig));
+    } else if (this.mentionItems) { // using simple method; just list
+      this.mentionConfig.configs = [{ items: this.mentionItems }];
+      this.addConfig(this.mentionConfig.configs[0]);
+    } else {
+      throw new Error('No config or items were provided.');
     }
   }
 
@@ -303,45 +305,27 @@ export class MentionDirective implements OnChanges {
    *
    * @param config The config to be added for the trigger character.
    */
-  private addConfig(config: MentionConfig): void {
-    // defaults
-    const defaults = Object.assign({}, this.DEFAULT_CONFIG);
-    config = Object.assign(defaults, config);
-    // items
-    let items = config.items;
-    if (items && items.length > 0) {
-      // convert strings to objects
-      if (typeof items[0] === 'string') {
-        items = items.map((label) => {
-          const object = {};
-          object[config.labelKey] = label;
-          return object;
-        });
-      }
-      if (config.labelKey) {
-        // remove items without an labelKey (as it's required to filter the list)
-        items = items.filter(e => e[config.labelKey]);
-        if (!config.disableSort) {
-          items.sort((a, b) => a[config.labelKey].localeCompare(b[config.labelKey]));
-        }
-      }
-    }
+  private addConfig(config: SingleMentionConfig): void {
+    const internalConfig = new InternalConfig(config);
+
+    let items = internalConfig.items;
     config.items = items;
 
     // add the config
-    this.triggerChars[config.triggerChar] = config;
+    this.triggerChars[internalConfig.triggerChar] = config;
 
     // for async update while menu/search is active
     if (this.activeConfig && this.activeConfig.triggerChar === config.triggerChar) {
-      this.activeConfig = config;
+      this.activeConfig = internalConfig;
       this.updateSearchList();
     }
   }
 
   /**
-   * @param iframe
+   * Allows for an `iframe` to be specified instead.
+   * @param iframe The iframe to set.
    */
-  setIframe(iframe: HTMLIFrameElement) {
+  setIframe(iframe: HTMLIFrameElement): void {
     this.iframe = iframe;
   }
 
@@ -363,8 +347,8 @@ export class MentionDirective implements OnChanges {
   /**
    * @param triggerChar
    */
-  startSearch(triggerChar?: string, nativeElement: HTMLInputElement = this.element.nativeElement): void {
-    triggerChar = triggerChar || this.mentionConfig.triggerChar || this.DEFAULT_CONFIG.triggerChar;
+  startSearch(triggerChar?: string, nativeElement = this.element.nativeElement): void {
+    triggerChar = triggerChar || this.mentionConfig.configs[0]?.triggerChar || '@';
     const pos = getCaretPosition(nativeElement, this.iframe);
     insertValue(nativeElement, pos, pos, triggerChar ?? '', this.iframe);
     const fakeKeydownEvent = new KeyboardEvent('keydown', { key: triggerChar });
@@ -387,7 +371,7 @@ export class MentionDirective implements OnChanges {
    *
    */
   updateSearchList(): void {
-    let matches: MentionItem[] = [];
+    let matches: Record<string, string>[] = [];
     if (this.activeConfig && this.activeConfig.items) {
       let objects = this.activeConfig.items;
       // disabling the search relies on the async operation to do the filtering
@@ -413,7 +397,7 @@ export class MentionDirective implements OnChanges {
    *
    * @param nativeElement
    */
-  showSearchList(nativeElement: Node): void {
+  showSearchList(nativeElement: HTMLElement): void {
     this.opened.emit();
 
     this.mentionListComponent.itemClick.subscribe(() => {
@@ -423,7 +407,7 @@ export class MentionDirective implements OnChanges {
     });
     this.mentionListComponent.labelKey = this.getActiveConfig().labelKey;
     this.mentionListComponent.dropUp = this.getActiveConfig().dropUp;
-    this.mentionListComponent.styleOff = this.mentionConfig.disableStyle;
+    this.mentionListComponent.styleOff = this.mentionConfig.disableStyle ?? false;
     this.mentionListComponent.activeIndex = 0;
     this.mentionListComponent.positionBasedOnParent(nativeElement, this.iframe);
     window.requestAnimationFrame(() => this.mentionListComponent.reset());
@@ -434,7 +418,7 @@ export class MentionDirective implements OnChanges {
    *
    * @returns The active config.
    */
-  private getActiveConfig(): SingleMentionConfig {
+  private getActiveConfig(): InternalConfig {
     if (!this.activeConfig) {
       throw new Error('The active config has not been set');
     }
