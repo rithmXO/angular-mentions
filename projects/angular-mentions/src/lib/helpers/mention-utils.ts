@@ -1,6 +1,6 @@
 // DOM element manipulation functions...
 
-import { Coordinate } from '../models';
+import { Coordinate, MentionItem } from '../models';
 
 // TODO: Is an extra `iframe` parameter really required for most of these functions? Could we not just use the existing `node` param?
 // An iframe IS a node, after all.
@@ -64,6 +64,22 @@ function setValue(node: Node, value: string): void {
   } else {
     node.textContent = value;
   }
+}
+
+/**
+ * Determines if the mention items are all strings.
+ *
+ * @param mentionItems The array of mention items to check.
+ * @returns True if all mentions items are strings.
+ */
+export function areMentionItemsStrings(mentionItems: MentionItem[]): mentionItems is string[] {
+  if (!Array.isArray(mentionItems)) {
+    return false;
+  }
+  if (mentionItems.some((item) => typeof item !== 'string')) {
+    return false;
+  }
+  return true;
 }
 
 /**
