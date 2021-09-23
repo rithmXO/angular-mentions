@@ -18,7 +18,7 @@ export class InMemoryDataService implements InMemoryDbService {
   }
 }
 
-interface MockHTTPData {
+export interface MockHTTPData {
   /** Names. */
   names: string[];
 
