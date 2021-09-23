@@ -1,30 +1,36 @@
 import { Component, NgZone, Input, ViewChild } from '@angular/core';
-
-import { MentionDirective } from 'angular-mentions';
+import { Editor } from 'tinymce';
+import { MentionDirective } from '../../../../angular-mentions/src/public-api';
 import { COMMON_NAMES } from '../common-names';
 
 /**
  * Angular 2 Mentions.
- * https://github.com/dmacfarlane/angular-mentions
- *
  * Example usage with TinyMCE.
  */
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-demo-tinymce',
   template: `
     <div class="form-group" style="position:relative">
       <div [mention]="items"></div>
       <div>
-        <textarea class="hidden" cols="60" rows="4" id="tmce">{{htmlContent}}</textarea>
+        <textarea class="hidden" cols="60" rows="4" id="tmce">{{ htmlContent }}</textarea>
       </div>
     </div>
-    <editor [init]="CONFIG"></editor>    
+    <editor [init]="CONFIG"></editor>
     `
 })
 export class DemoTinymceComponent {
-  @Input() htmlContent:string;
-  @ViewChild(MentionDirective, { static: true }) mention: MentionDirective;
-  public items:string[] = COMMON_NAMES;
+  /** HTML content to be shown in the textarea. */
+  @Input() htmlContent = '';
+
+  /** Reference to the active mentionDirective. */
+  @ViewChild(MentionDirective, { static: true }) mention!: MentionDirective;
+
+  /** A list of common names for testing. */
+  public items: string[] = COMMON_NAMES;
+
+  /** The tinyMCE config object. */
   public CONFIG = {
     base_url: '/tinymce',
     suffix: '.min',
@@ -41,16 +47,28 @@ export class DemoTinymceComponent {
       bullist numlist outdent indent | removeformat | help',
     setup: this.tinySetup.bind(this)
   };
-  constructor(private _zone: NgZone) {}
-  tinySetup(ed) {
-    ed.on('init', (args) => {
-      this.mention.setIframe(ed.iframeElement);
+
+  constructor(private _zone: NgZone) { }
+
+  /**
+   * Sets up tinyMCE.
+   *
+   * @param ed The component.
+   */
+  tinySetup(ed: Editor): void {
+    const editorIframeElement = ed.iframeElement;
+    if (!editorIframeElement) {
+      throw new Error('Iframe was null for TinyMCE demo.');
+    }
+    ed.on('init', () => {
+      this.mention.setIframe(editorIframeElement);
     });
-    ed.on('keydown', (e) => {
-      let frame = <any>window.frames[ed.iframeElement.id];
-      let contentEditable = frame.contentDocument.getElementById('tinymce');
+    ed.on('keydown', (event: KeyboardEvent) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const frame = (window.frames as any)[editorIframeElement.id]; // TODO: what is the type for this?
+      const contentEditable = frame.contentDocument.getElementById('tinymce');
       this._zone.run(() => {
-        this.mention.keyHandler(e, contentEditable);
+        this.mention.keyHandler(event, contentEditable);
       });
     });
   }
