@@ -3,5 +3,5 @@
   Example showing how complex items (an array of objects) and configuration options can be used.
   The trigger character is #.
 </p>
-<input class="form-control" type="text" [mention]="complexItems"
-  [mentionConfig]="{ triggerChar: '#', maxItems: 10, labelKey: 'name', mentionSelect: format }">
+<input class="form-control" type="text" [mentionItems]="complexItems"
+  [mentionConfig]="{ configs: [{ items: complexItems, triggerChar: '#', maxItems: 10, labelKey: 'name', mentionSelect: format }] }">

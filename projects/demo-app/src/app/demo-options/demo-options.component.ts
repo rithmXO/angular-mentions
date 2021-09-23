@@ -16,8 +16,7 @@ export class DemoOptionsComponent {
    * @param item The item to format.
    * @returns A formatted string.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  format(item: any): string {
+  format(item: Record<string, string>): string {
     return item['value'].toUpperCase();
   }
 
