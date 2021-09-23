@@ -19,6 +19,8 @@ export class InMemoryDataService implements InMemoryDbService {
 }
 
 export interface MockHTTPData {
+  [key: string]: unknown; // TODO: See if we can change this in directive; we don't really want our consumers to have to specify this
+
   /** Names. */
   names: string[];
 

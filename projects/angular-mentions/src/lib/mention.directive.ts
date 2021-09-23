@@ -34,7 +34,7 @@ export class MentionDirective implements OnChanges {
   @HostBinding('attr.autocomplete') autoComplete = 'off';
 
   /** Items to suggest in the mention list. Will be ignored if `mentionConfig` is provided. */
-  @Input() mentionItems: MentionItem[] = [];
+  @Input() mentionItems: MentionItem[] | null = []; // null is required for async
 
   /** Options to configure the mentions. */
   @Input() mentionConfig: MentionConfig = { configs: [] };
