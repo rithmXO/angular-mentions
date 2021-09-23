@@ -59,7 +59,7 @@ export class InternalConfig {
   mentionSelect: (item: Record<string, string>, triggerChar?: string) => (string);
 
   /** Function to customize the search implementation. */
-  mentionFilter: (searchString: string, items?: Record<string, string>[]) => (Record<string, string>[]);
+  mentionFilter: (searchString: string, items: Record<string, string>[]) => (Record<string, string>[]);
 
 
   constructor(mentionConfig: SingleMentionConfig) {
