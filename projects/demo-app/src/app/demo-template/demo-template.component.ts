@@ -2,12 +2,17 @@ import { Component } from '@angular/core';
 
 // import { COMMON_NAMES } from '../common-names';
 
+/**
+ * Demo for using a custom Angular template.
+ */
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-demo-template',
   templateUrl: './demo-template.component.html'
 })
 export class DemoTemplateComponent {
-  items: any[] =  [
+  /** Sample object list for demo. */
+  items = [
     {
       username: 'noah',
       name: 'Noah',
