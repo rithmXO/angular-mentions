@@ -71,7 +71,7 @@ export function getCaretCoordinate(element: HTMLInputElement | HTMLTextAreaEleme
       if (!debugElementParent) {
         throw new Error('The debug element has no parent node.');
       }
-      debugElement.parentNode.removeChild(debugElement);
+      debugElementParent.removeChild(debugElement);
     }
   }
 
@@ -119,7 +119,7 @@ export function getCaretCoordinate(element: HTMLInputElement | HTMLTextAreaEleme
         style.lineHeight = computed.height;
       }
     } else {
-      style[prop] = computed[prop];
+      style.setProperty(prop, computed.getPropertyValue(prop));
     }
   });
 
