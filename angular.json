@@ -143,12 +143,9 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/demo-app/tsconfig.app.json",
-              "projects/demo-app/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/angular-mentions/**/*.ts",
+              "projects/angular-mentions/**/*.html"
             ]
           }
         }
@@ -174,9 +171,9 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": "projects/demo-app-e2e/tsconfig.e2e.json",
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/angular-mentions/**/*.ts",
+              "projects/angular-mentions/**/*.html"
             ]
           }
         }
