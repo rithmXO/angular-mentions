@@ -12,7 +12,7 @@ import { COMMON_NAMES } from '../common-names';
   selector: 'app-demo-tinymce',
   template: `
     <div class="form-group" style="position:relative">
-      <div [mention]="items"></div>
+      <div [mentionItems]="items"></div>
       <div>
         <textarea class="hidden" cols="60" rows="4" id="tmce">{{ htmlContent }}</textarea>
       </div>
