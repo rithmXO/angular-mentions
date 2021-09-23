@@ -1,40 +1,62 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { MockHTTPData } from './in-memory-data.service';
+import { Observable, of, Subject } from 'rxjs';
+import { debounceTime, switchMap, distinctUntilChanged } from 'rxjs/operators';
 
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/distinctUntilChanged';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/switchMap';
-
+/**
+ * Demo component for async items.
+ */
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'app-demo-async',
   templateUrl: './demo-async.component.html'
 })
 export class DemoAsyncComponent implements OnInit {
-  httpItems: Observable<any[]>;
-  private searchTermStream = new Subject();
-  ngOnInit() {
+  /** Items as returned through an async method. */
+  httpItems!: Observable<MockHTTPData[]>;
+
+  /** The subject stream for the search term. */
+  private searchTermStream: Subject<string> = new Subject();
+
+  /**
+   * Gets the HTTP items.
+   */
+  ngOnInit(): void {
     this.httpItems = this.searchTermStream
-      .debounceTime(500)
-      .distinctUntilChanged()
-      .switchMap((term: string) => this.getItems(term));
+    .pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      switchMap((term: string) => this.getItems(term))
+    );
   }
-  search(term: string) {
+
+  /**
+   * Starts a search given a string.
+   *
+   * @param term The search term.
+   */
+  search(term: string): void {
     this.searchTermStream.next(term);
   }
 
   // this should be in a separate demo-async.service.ts file
   constructor(private http: HttpClient) { }
-  getItems(term):Observable<any[]> {
+
+  /**
+   * Gets items filtered by the search term.
+   *
+   * @param term The search term.
+   * @returns A list of filtered items.
+   */
+  getItems(term: string): Observable<MockHTTPData[]> {
     console.log('getItems:', term);
     if (!term) {
       // if the search term is empty, return an empty array
-      return Observable.of([]);
+      return of([]);
     }
     // return this.http.get('api/names') // get all names
-    return this.http.get<any[]>('api/objects?label='+term); // get filtered names
+    return this.http.get<MockHTTPData[]>('api/objects?label=' + term); // get filtered names
   }
 }
